@@ -3,11 +3,11 @@ import {
   FindingSeverity,
   Finding,
   HandleTransaction,
-  createTransactionEvent, TransactionEvent
+  createTransactionEvent, TransactionEvent, keccak256
 } from "forta-agent"
 import { generalTestFindingGenerator, TestTransactionEvent } from "forta-agent-tools/lib/tests.utils";
 //import { generalTestFindingGenerator, TestTransactionEvent } from "forta-agent-tools";
-import { FindingGenerator } from "forta-agent-tools";
+import {encodeParameters, FindingGenerator} from "forta-agent-tools";
 import agent from "./agent"
 import {YVWETHV2CAULDRON_ADDRESS, LOGADDCOLLATERAL_EVENT, ETH_DECIMALS} from "./constants";
 import {metadataVault} from "forta-agent-tools/lib/utils";
@@ -29,6 +29,8 @@ describe("Abracadabra Deposit/Withdraw Agent Tests", () => {
         },
       });
 
+  const simplifiedSignature = "LogAddCollateral(address,address,uint256)"
+  const sighashSimplifiedSignature = keccak256(simplifiedSignature)
   beforeAll(() => {
     handleTransaction = agent.handleTransaction
   })
@@ -47,8 +49,14 @@ describe("Abracadabra Deposit/Withdraw Agent Tests", () => {
     })
 
     it("returns a finding if passing in multiple correct emissions", async () => {
-
-      const txEvent1: TransactionEvent = new TestTransactionEvent().addEventLog(LOGADDCOLLATERAL_EVENT, YVWETHV2CAULDRON_ADDRESS)
+      // address indexed from, address indexed to
+      let data = encodeParameters(["address", "address"], ["0x186EbFa2761D4c766F8FB2D448D16dea56D3E456", "0x186EbFa2761D4c766F8FB2D448D16dea56D3E456"])
+      let topics = [sighashSimplifiedSignature, encodeParameters(["uint256"], [1])]
+      const txEvent1: TransactionEvent = new TestTransactionEvent().addEventLog(
+          simplifiedSignature,
+          YVWETHV2CAULDRON_ADDRESS,
+          data,
+          ...topics)
       let findings: Finding[] = await handleTransaction(txEvent1);
 
       const txEvent2: TransactionEvent = new TestTransactionEvent().addEventLog(LOGADDCOLLATERAL_EVENT, YVWETHV2CAULDRON_ADDRESS)
