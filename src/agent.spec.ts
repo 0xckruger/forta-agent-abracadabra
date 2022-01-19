@@ -22,8 +22,7 @@ describe("Abracadabra Deposit/Withdraw Agent Tests", () => {
         description: `${new BigNumber (
             share.toString()).
             dividedBy(10 ** 18).
-            toFixed(2)} 
-            shares yvWETH added`,
+            toFixed(2)} shares yvWETH added`,
         alertId: "ABRA-1",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
