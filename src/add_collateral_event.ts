@@ -42,9 +42,9 @@ function providerEventTransaction(
                     severity: FindingSeverity.Info,
                     type: FindingType.Info,
                     metadata: {
-                        from: largeCollateralDeposit.args.from,
-                        to: largeCollateralDeposit.args.to,
-                        share: largeCollateralDeposit.args.share,
+                        from: largeCollateralDeposit.args.from.toString(),
+                        to: largeCollateralDeposit.args.to.toString(),
+                        share: largeCollateralDeposit.args.share.toString(),
                     },
                 })
             );

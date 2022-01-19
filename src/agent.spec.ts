@@ -11,21 +11,22 @@ import {encodeParameters, FindingGenerator} from "forta-agent-tools";
 import agent from "./agent"
 import {YVWETHV2CAULDRON_ADDRESS, LOGADDCOLLATERAL_EVENT, ETH_DECIMALS} from "./constants";
 import {metadataVault} from "forta-agent-tools/lib/utils";
+import BigNumber from "bignumber.js";
 
 describe("Abracadabra Deposit/Withdraw Agent Tests", () => {
   let handleTransaction: HandleTransaction
 
   const findingGenerator: FindingGenerator = (event?: metadataVault): Finding =>
       Finding.fromObject({
-        name: "Abracadabra Agent Test",
-        description: "Finding Test",
-        alertId: "TEST",
-        severity: FindingSeverity.Low,
+        name: "LogAddCollateral Event in yvWETHv2 Cauldron",
+        description: `0.00 shares yvWETH added`,
+        alertId: "ABRA-1",
+        severity: FindingSeverity.Info,
         type: FindingType.Info,
         metadata: {
-          topics: JSON.stringify(event?.topics),
-          data: event?.data,
-          address: event?.address,
+          from: "0xDefC385D7038f391Eb0063C2f7C238cFb55b206C",
+          share: "1",
+          to: "0xDa1EC4dA97019972759FedA1285878b97FDCC014",
         },
       });
 
@@ -40,7 +41,7 @@ describe("Abracadabra Deposit/Withdraw Agent Tests", () => {
     let transactionHandler: HandleTransaction
 
     it("returns empty findings if an empty transaction event is used (but from the right address)", async () => {
-      const txEvent: TransactionEvent = new TestTransactionEvent().setFrom(YVWETHV2CAULDRON_ADDRESS)
+      const txEvent: TransactionEvent = new TestTransactionEvent()
 
       const findings: Finding[] = await handleTransaction(txEvent)
 
@@ -49,22 +50,26 @@ describe("Abracadabra Deposit/Withdraw Agent Tests", () => {
     })
 
     it("returns a finding if passing in multiple correct emissions", async () => {
-      // address indexed from, address indexed to
-      let data = encodeParameters(["address", "address"], ["0xDefC385D7038f391Eb0063C2f7C238cFb55b206C", "0xDa1EC4dA97019972759FedA1285878b97FDCC014"])
-      let topics = [sighashSimplifiedSignature, encodeParameters(["uint256"], [1])]
+
       const txEvent1: TransactionEvent = new TestTransactionEvent().addEventLog(
+          simplifiedSignature,
           YVWETHV2CAULDRON_ADDRESS,
-          data,
-          ...topics)
+          encodeParameters(["uint256"], [1]),
+          encodeParameters(["address"], ["0xDefC385D7038f391Eb0063C2f7C238cFb55b206C"]),
+          encodeParameters(["address"], ["0xDa1EC4dA97019972759FedA1285878b97FDCC014"]),
+      )
       let findings: Finding[] = await handleTransaction(txEvent1);
 
       const txEvent2: TransactionEvent = new TestTransactionEvent().addEventLog(
+          simplifiedSignature,
           YVWETHV2CAULDRON_ADDRESS,
-          data,
-          ...topics)
+          encodeParameters(["uint256"], [1]),
+          encodeParameters(["address"], ["0xDefC385D7038f391Eb0063C2f7C238cFb55b206C"]),
+          encodeParameters(["address"], ["0xDa1EC4dA97019972759FedA1285878b97FDCC014"]),
+      )
       findings = findings.concat(await handleTransaction(txEvent2))
 
-      expect(findings).toStrictEqual([generalTestFindingGenerator(txEvent1), generalTestFindingGenerator(txEvent2)]);
+      expect(findings).toStrictEqual([findingGenerator(txEvent1), findingGenerator(txEvent2)]);
     })
 
     it("returns empty finding if an emitted event occurs but in the wrong contract", async() => {
