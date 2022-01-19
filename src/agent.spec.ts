@@ -3,46 +3,70 @@ import {
   FindingSeverity,
   Finding,
   HandleTransaction,
-  createTransactionEvent
+  createTransactionEvent, TransactionEvent
 } from "forta-agent"
+import { generalTestFindingGenerator, TestTransactionEvent } from "forta-agent-tools/lib/tests.utils";
+import { provideEventCheckerHandler } from "forta-agent-tools";
+import { FindingGenerator } from "forta-agent-tools";
 import agent from "./agent"
+import {YVWETHV2CAULDRON_ADDRESS, LOGADDCOLLATERAL_EVENT, ETH_DECIMALS} from "./constants";
+import {metadataVault} from "forta-agent-tools/lib/utils";
 
-describe("high gas agent", () => {
+describe("Abracadabra Deposit/Withdraw Agent Tests", () => {
   let handleTransaction: HandleTransaction
 
-  const createTxEventWithGasUsed = (gasUsed: string) => createTransactionEvent({
-    transaction: {} as any,
-    receipt: { gasUsed } as any,
-    block: {} as any,
-  })
+  const findingGenerator: FindingGenerator = (event?: metadataVault): Finding =>
+      Finding.fromObject({
+        name: "Abracadabra Agent Test",
+        description: "Finding Test",
+        alertId: "TEST",
+        severity: FindingSeverity.Low,
+        type: FindingType.Info,
+        metadata: {
+          topics: JSON.stringify(event?.topics),
+          data: event?.data,
+          address: event?.address,
+        },
+      });
 
   beforeAll(() => {
     handleTransaction = agent.handleTransaction
   })
 
   describe("handleTransaction", () => {
-    it("returns empty findings if gas used is below threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1")
 
-      const findings = await handleTransaction(txEvent)
+    let transactionHandler: HandleTransaction
+
+    it("returns empty findings if an empty transaction event is used (but from the right address)", async () => {
+      transactionHandler = provideEventCheckerHandler(generalTestFindingGenerator, LOGADDCOLLATERAL_EVENT, YVWETHV2CAULDRON_ADDRESS)
+      const txEvent: TransactionEvent = new TestTransactionEvent().setFrom(YVWETHV2CAULDRON_ADDRESS)
+
+      const findings: Finding[] = await transactionHandler(txEvent)
+
+      expect(findings).toStrictEqual([])
+
+    })
+
+    it("returns a finding if passing in multiple correct emissions", async () => {
+      transactionHandler = provideEventCheckerHandler(generalTestFindingGenerator, LOGADDCOLLATERAL_EVENT, YVWETHV2CAULDRON_ADDRESS)
+
+      const txEvent1: TransactionEvent = new TestTransactionEvent().addEventLog(LOGADDCOLLATERAL_EVENT, YVWETHV2CAULDRON_ADDRESS)
+      let findings: Finding[] = await transactionHandler(txEvent1);
+
+      const txEvent2: TransactionEvent = new TestTransactionEvent().addEventLog(LOGADDCOLLATERAL_EVENT, YVWETHV2CAULDRON_ADDRESS)
+      findings = findings.concat(await transactionHandler(txEvent2))
+
+      expect(findings).toStrictEqual([generalTestFindingGenerator(txEvent1), generalTestFindingGenerator(txEvent2)]);
+    })
+
+    it("returns empty finding if an emitted event occurs but in the wrong contract", async() => {
+      transactionHandler = provideEventCheckerHandler(generalTestFindingGenerator, LOGADDCOLLATERAL_EVENT, YVWETHV2CAULDRON_ADDRESS)
+
+      const txEvent1: TransactionEvent = new TestTransactionEvent().addEventLog(LOGADDCOLLATERAL_EVENT, "0x00000000000eAFb5E25c6bDC9f6CB5deadbeef")
+      let findings: Finding[] = await transactionHandler(txEvent1);
 
       expect(findings).toStrictEqual([])
     })
 
-    it("returns a finding if gas used is above threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1000001")
-
-      const findings = await handleTransaction(txEvent)
-
-      expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "High Gas Used",
-          description: `Gas Used: ${txEvent.gasUsed}`,
-          alertId: "FORTA-1",
-          type: FindingType.Suspicious,
-          severity: FindingSeverity.Medium
-        }),
-      ])
-    })
   })
 })
