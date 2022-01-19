@@ -53,13 +53,15 @@ describe("Abracadabra Deposit/Withdraw Agent Tests", () => {
       let data = encodeParameters(["address", "address"], ["0xDefC385D7038f391Eb0063C2f7C238cFb55b206C", "0xDa1EC4dA97019972759FedA1285878b97FDCC014"])
       let topics = [sighashSimplifiedSignature, encodeParameters(["uint256"], [1])]
       const txEvent1: TransactionEvent = new TestTransactionEvent().addEventLog(
-          simplifiedSignature,
           YVWETHV2CAULDRON_ADDRESS,
           data,
           ...topics)
       let findings: Finding[] = await handleTransaction(txEvent1);
 
-      const txEvent2: TransactionEvent = new TestTransactionEvent().addEventLog(LOGADDCOLLATERAL_EVENT, YVWETHV2CAULDRON_ADDRESS)
+      const txEvent2: TransactionEvent = new TestTransactionEvent().addEventLog(
+          YVWETHV2CAULDRON_ADDRESS,
+          data,
+          ...topics)
       findings = findings.concat(await handleTransaction(txEvent2))
 
       expect(findings).toStrictEqual([generalTestFindingGenerator(txEvent1), generalTestFindingGenerator(txEvent2)]);
