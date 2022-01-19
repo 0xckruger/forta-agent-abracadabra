@@ -50,7 +50,7 @@ describe("Abracadabra Deposit/Withdraw Agent Tests", () => {
 
     it("returns a finding if passing in multiple correct emissions", async () => {
       // address indexed from, address indexed to
-      let data = encodeParameters(["address", "address"], ["0x186EbFa2761D4c766F8FB2D448D16dea56D3E456", "0x186EbFa2761D4c766F8FB2D448D16dea56D3E456"])
+      let data = encodeParameters(["address", "address"], ["0xDefC385D7038f391Eb0063C2f7C238cFb55b206C", "0xDa1EC4dA97019972759FedA1285878b97FDCC014"])
       let topics = [sighashSimplifiedSignature, encodeParameters(["uint256"], [1])]
       const txEvent1: TransactionEvent = new TestTransactionEvent().addEventLog(
           simplifiedSignature,
