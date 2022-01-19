@@ -16,7 +16,7 @@ import BigNumber from "bignumber.js";
 describe("Abracadabra Deposit/Withdraw Agent Tests", () => {
   let handleTransaction: HandleTransaction
 
-  const findingGenerator: FindingGenerator = (event?: metadataVault): Finding =>
+  const createAddCollateralFinding = (from: string, to: string, share: BigNumber) =>
       Finding.fromObject({
         name: "LogAddCollateral Event in yvWETHv2 Cauldron",
         description: `0.00 shares yvWETH added`,
@@ -24,9 +24,9 @@ describe("Abracadabra Deposit/Withdraw Agent Tests", () => {
         severity: FindingSeverity.Info,
         type: FindingType.Info,
         metadata: {
-          from: "0xDefC385D7038f391Eb0063C2f7C238cFb55b206C",
-          share: "1",
-          to: "0xDa1EC4dA97019972759FedA1285878b97FDCC014",
+          from: from,
+          share: share.toString(),
+          to: to,
         },
       });
 
@@ -50,6 +50,9 @@ describe("Abracadabra Deposit/Withdraw Agent Tests", () => {
     })
 
     it("returns a finding if passing in multiple correct emissions", async () => {
+      const from = "0xDefC385D7038f391Eb0063C2f7C238cFb55b206C"
+      const to = "0xDa1EC4dA97019972759FedA1285878b97FDCC014"
+      const share = new BigNumber(1)
 
       const txEvent1: TransactionEvent = new TestTransactionEvent().addEventLog(
           simplifiedSignature,
@@ -69,7 +72,8 @@ describe("Abracadabra Deposit/Withdraw Agent Tests", () => {
       )
       findings = findings.concat(await handleTransaction(txEvent2))
 
-      expect(findings).toStrictEqual([findingGenerator(txEvent1), findingGenerator(txEvent2)]);
+      expect(findings).toStrictEqual([
+          createAddCollateralFinding(from, to, share), createAddCollateralFinding(from, to, share)]);
     })
 
     it("returns empty finding if an emitted event occurs but in the wrong contract", async() => {
