@@ -6,7 +6,7 @@ import {
   createTransactionEvent, TransactionEvent
 } from "forta-agent"
 import { generalTestFindingGenerator, TestTransactionEvent } from "forta-agent-tools/lib/tests.utils";
-import { provideEventCheckerHandler } from "forta-agent-tools";
+//import { generalTestFindingGenerator, TestTransactionEvent } from "forta-agent-tools";
 import { FindingGenerator } from "forta-agent-tools";
 import agent from "./agent"
 import {YVWETHV2CAULDRON_ADDRESS, LOGADDCOLLATERAL_EVENT, ETH_DECIMALS} from "./constants";
@@ -38,32 +38,29 @@ describe("Abracadabra Deposit/Withdraw Agent Tests", () => {
     let transactionHandler: HandleTransaction
 
     it("returns empty findings if an empty transaction event is used (but from the right address)", async () => {
-      transactionHandler = provideEventCheckerHandler(generalTestFindingGenerator, LOGADDCOLLATERAL_EVENT, YVWETHV2CAULDRON_ADDRESS)
       const txEvent: TransactionEvent = new TestTransactionEvent().setFrom(YVWETHV2CAULDRON_ADDRESS)
 
-      const findings: Finding[] = await transactionHandler(txEvent)
+      const findings: Finding[] = await handleTransaction(txEvent)
 
       expect(findings).toStrictEqual([])
 
     })
 
     it("returns a finding if passing in multiple correct emissions", async () => {
-      transactionHandler = provideEventCheckerHandler(generalTestFindingGenerator, LOGADDCOLLATERAL_EVENT, YVWETHV2CAULDRON_ADDRESS)
 
       const txEvent1: TransactionEvent = new TestTransactionEvent().addEventLog(LOGADDCOLLATERAL_EVENT, YVWETHV2CAULDRON_ADDRESS)
-      let findings: Finding[] = await transactionHandler(txEvent1);
+      let findings: Finding[] = await handleTransaction(txEvent1);
 
       const txEvent2: TransactionEvent = new TestTransactionEvent().addEventLog(LOGADDCOLLATERAL_EVENT, YVWETHV2CAULDRON_ADDRESS)
-      findings = findings.concat(await transactionHandler(txEvent2))
+      findings = findings.concat(await handleTransaction(txEvent2))
 
       expect(findings).toStrictEqual([generalTestFindingGenerator(txEvent1), generalTestFindingGenerator(txEvent2)]);
     })
 
     it("returns empty finding if an emitted event occurs but in the wrong contract", async() => {
-      transactionHandler = provideEventCheckerHandler(generalTestFindingGenerator, LOGADDCOLLATERAL_EVENT, YVWETHV2CAULDRON_ADDRESS)
 
       const txEvent1: TransactionEvent = new TestTransactionEvent().addEventLog(LOGADDCOLLATERAL_EVENT, "0x00000000000eAFb5E25c6bDC9f6CB5deadbeef")
-      let findings: Finding[] = await transactionHandler(txEvent1);
+      let findings: Finding[] = await handleTransaction(txEvent1);
 
       expect(findings).toStrictEqual([])
     })

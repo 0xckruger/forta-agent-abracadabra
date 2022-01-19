@@ -37,7 +37,7 @@ function providerEventTransaction(
             findings.push(
                 Finding.fromObject({
                     name: "LogAddCollateral Event in yvWETHv2 Cauldron",
-                    description: `${sharesTransferred} shares yvWETH added`,
+                    description: `${formattedAmount} shares yvWETH added`,
                     alertId: "ABRA-1",
                     severity: FindingSeverity.Info,
                     type: FindingType.Info,
