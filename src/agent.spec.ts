@@ -78,7 +78,13 @@ describe("Abracadabra Deposit/Withdraw Agent Tests", () => {
 
     it("returns empty finding if an emitted event occurs but in the wrong contract", async() => {
 
-      const txEvent1: TransactionEvent = new TestTransactionEvent().addEventLog(LOGADDCOLLATERAL_EVENT, "0x00000000000eAFb5E25c6bDC9f6CB5deadbeef")
+      const txEvent1: TransactionEvent = new TestTransactionEvent().addEventLog(
+          simplifiedSignature,
+          "0x00000000000eAFb5E25c6bDC9f6CB5deadbeef",
+          encodeParameters(["uint256"], [1]),
+          encodeParameters(["address"], ["0xDefC385D7038f391Eb0063C2f7C238cFb55b206C"]),
+          encodeParameters(["address"], ["0xDa1EC4dA97019972759FedA1285878b97FDCC014"]),
+      )
       let findings: Finding[] = await handleTransaction(txEvent1);
 
       expect(findings).toStrictEqual([])
