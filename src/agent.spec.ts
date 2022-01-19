@@ -19,7 +19,11 @@ describe("Abracadabra Deposit/Withdraw Agent Tests", () => {
   const createAddCollateralFinding = (from: string, to: string, share: BigNumber) =>
       Finding.fromObject({
         name: "LogAddCollateral Event in yvWETHv2 Cauldron",
-        description: `${share.toFixed(2)} shares yvWETH added`,
+        description: `${new BigNumber (
+            share.toString()).
+            dividedBy(10 ** 18).
+            toFixed(2)} 
+            shares yvWETH added`,
         alertId: "ABRA-1",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
