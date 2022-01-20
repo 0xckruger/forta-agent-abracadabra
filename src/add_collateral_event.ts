@@ -8,7 +8,7 @@ import {
     HandleTransaction,
     TransactionEvent
 } from "forta-agent";
-import {YVWETHV2CAULDRON_ADDRESS, LOGADDCOLLATERAL_EVENT, ETH_DECIMALS, CAULDRON_LIST_ADDRESS} from "./constants";
+import {YVWETHV2CAULDRON_ADDRESS, LOGADDCOLLATERAL_EVENT, ETH_DECIMALS, CAULDRON_LIST_ADDRESS, ADDRESS_MAP} from "./constants";
 
 // Define how large the collateral added should be to trigger an event
 const LARGE_COLLATERAL_AMT = 1;
@@ -21,13 +21,14 @@ function providerEventTransaction(
     return async function handleTransaction(txEvent: TransactionEvent) {
         const findings: Finding[] = [];
 
-        for (const address in CAULDRON_LIST_ADDRESS) {
+        for (const i in CAULDRON_LIST_ADDRESS) {
+            let address = CAULDRON_LIST_ADDRESS[i]
             const largeCollateralAdd = txEvent.filterLog(
                 LOGADDCOLLATERAL_EVENT,
                 address,
             );
 
-            if (!largeCollateralAdd.length) return findings
+            if (!largeCollateralAdd.length) continue
 
             largeCollateralAdd.forEach((largeCollateralDeposit) => {
                 const sharesTransferred = new BigNumber(
@@ -37,8 +38,8 @@ function providerEventTransaction(
                 const formattedAmount = sharesTransferred.toFixed(2);
                 findings.push(
                     Finding.fromObject({
-                        name: "LogAddCollateral Event in yvWETHv2 Cauldron",
-                        description: `${formattedAmount} shares yvWETH added`,
+                        name: `LogAddCollateral Event in ${ADDRESS_MAP.get(address)} Cauldron`,
+                        description: `${formattedAmount} shares ${ADDRESS_MAP.get(address)} added`,
                         alertId: "ABRA-1",
                         severity: FindingSeverity.Info,
                         type: FindingType.Info,
