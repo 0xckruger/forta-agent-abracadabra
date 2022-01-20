@@ -8,7 +8,7 @@ import {
     HandleTransaction,
     TransactionEvent
 } from "forta-agent";
-import {YVWETHV2CAULDRON_ADDRESS, LOGADDCOLLATERAL_EVENT, ETH_DECIMALS} from "./constants";
+import {YVWETHV2CAULDRON_ADDRESS, LOGADDCOLLATERAL_EVENT, ETH_DECIMALS, CAULDRON_LIST_ADDRESS} from "./constants";
 
 // Define how large the collateral added should be to trigger an event
 const LARGE_COLLATERAL_AMT = 1;
@@ -21,34 +21,36 @@ function providerEventTransaction(
     return async function handleTransaction(txEvent: TransactionEvent) {
         const findings: Finding[] = [];
 
-        const largeCollateralAdd = txEvent.filterLog(
-            LOGADDCOLLATERAL_EVENT,
-            YVWETHV2CAULDRON_ADDRESS,
-        );
-
-        if (!largeCollateralAdd.length) return findings
-
-        largeCollateralAdd.forEach((largeCollateralDeposit) => {
-            const sharesTransferred = new BigNumber(
-                largeCollateralDeposit.args.share.toString()
-            ).dividedBy(10 ** ETH_DECIMALS);
-
-            const formattedAmount = sharesTransferred.toFixed(2);
-            findings.push(
-                Finding.fromObject({
-                    name: "LogAddCollateral Event in yvWETHv2 Cauldron",
-                    description: `${formattedAmount} shares yvWETH added`,
-                    alertId: "ABRA-1",
-                    severity: FindingSeverity.Info,
-                    type: FindingType.Info,
-                    metadata: {
-                        from: largeCollateralDeposit.args.from.toString(),
-                        to: largeCollateralDeposit.args.to.toString(),
-                        share: largeCollateralDeposit.args.share.toString(),
-                    },
-                })
+        for (const address in CAULDRON_LIST_ADDRESS) {
+            const largeCollateralAdd = txEvent.filterLog(
+                LOGADDCOLLATERAL_EVENT,
+                address,
             );
-        });
+
+            if (!largeCollateralAdd.length) return findings
+
+            largeCollateralAdd.forEach((largeCollateralDeposit) => {
+                const sharesTransferred = new BigNumber(
+                    largeCollateralDeposit.args.share.toString()
+                ).dividedBy(10 ** ETH_DECIMALS);
+
+                const formattedAmount = sharesTransferred.toFixed(2);
+                findings.push(
+                    Finding.fromObject({
+                        name: "LogAddCollateral Event in yvWETHv2 Cauldron",
+                        description: `${formattedAmount} shares yvWETH added`,
+                        alertId: "ABRA-1",
+                        severity: FindingSeverity.Info,
+                        type: FindingType.Info,
+                        metadata: {
+                            from: largeCollateralDeposit.args.from.toString(),
+                            to: largeCollateralDeposit.args.to.toString(),
+                            share: largeCollateralDeposit.args.share.toString(),
+                        },
+                    })
+                );
+            });
+        }
         return findings;
     };
 }
