@@ -5,7 +5,7 @@ import { CAULDRON_ADDRESS_MAP } from './constants'
 
 let findingsCount = 0
 
-export function provideHandleTransaction(): HandleTransaction {
+export const provideHandleTransaction = (cauldronMap: Map<string, string>) => {
 
   return async function handleTransaction(txEvent: TransactionEvent) {
     const findings1 = await addCollateralEvents.handleTransaction(txEvent)
@@ -16,5 +16,5 @@ export function provideHandleTransaction(): HandleTransaction {
 
 
 export default {
-    handleTransaction: provideHandleTransaction()
+    handleTransaction: provideHandleTransaction(CAULDRON_ADDRESS_MAP)
 }

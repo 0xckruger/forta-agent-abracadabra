@@ -38,14 +38,11 @@ describe("Abracadabra Deposit/Withdraw Agent Tests", () => {
       });
 
   beforeAll(() => {
-    handleTransaction = provideHandleTransaction()
+    handleTransaction = provideHandleTransaction(CAULDRON_ADDRESS_MAP)
   })
-// tests
+
   describe("handleTransaction", () => {
-
-    let transactionHandler: HandleTransaction
-
-    it("returns empty findings if an empty transaction event is used (but from the right address)", async () => {
+      it("returns empty findings if an empty transaction event is used (but from the right address)", async () => {
       const txEvent: TransactionEvent = new TestTransactionEvent()
 
       const findings: Finding[] = await handleTransaction(txEvent)
