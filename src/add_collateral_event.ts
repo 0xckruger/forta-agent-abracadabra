@@ -52,5 +52,5 @@ function providerEventTransaction(
 }
 
 export default {
-    handleTransaction: providerEventTransaction(CAULDRON_ADDRESS_MAP),
+    providerEventTransaction: providerEventTransaction,
 }
