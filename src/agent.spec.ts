@@ -3,14 +3,12 @@ import {
   FindingSeverity,
   Finding,
   HandleTransaction,
-  createTransactionEvent, TransactionEvent, keccak256
+  TransactionEvent,
 } from "forta-agent"
-import { generalTestFindingGenerator, TestTransactionEvent } from "forta-agent-tools/lib/tests.utils";
-//import { generalTestFindingGenerator, TestTransactionEvent } from "forta-agent-tools";
-import {encodeParameters, FindingGenerator} from "forta-agent-tools";
-import agent from "./agent"
-import {LOGADDCOLLATERAL_EVENT, ETH_DECIMALS, CAULDRON_ADDRESS_MAP} from "./constants";
-import {metadataVault} from "forta-agent-tools/lib/utils";
+import { TestTransactionEvent } from "forta-agent-tools/lib/tests.utils";
+import { encodeParameters } from "forta-agent-tools";
+import { provideHandleTransaction } from "./agent"
+import { CAULDRON_ADDRESS_MAP } from "./constants";
 import BigNumber from "bignumber.js";
 
 // Test constants
@@ -18,9 +16,6 @@ const fromAddress = "0xDefC385D7038f391Eb0063C2f7C238cFb55b206C" // Test from ad
 const toAddress = "0xDa1EC4dA97019972759FedA1285878b97FDCC014" // Test to address
 const simplifiedAddSignature = "LogAddCollateral(address,address,uint256)"
 const simplifiedRemoveSignature = "LogRemoveCollateral(address,address,uint256)"
-const sighashSimplifiedSignature = keccak256(simplifiedAddSignature)
-const sighashRemoveSimplifiedSignature = keccak256(simplifiedRemoveSignature)
-
 
 describe("Abracadabra Deposit/Withdraw Agent Tests", () => {
   let handleTransaction: HandleTransaction
@@ -43,7 +38,7 @@ describe("Abracadabra Deposit/Withdraw Agent Tests", () => {
       });
 
   beforeAll(() => {
-    handleTransaction = agent.handleTransaction
+    handleTransaction = provideHandleTransaction()
   })
 // tests
   describe("handleTransaction", () => {
@@ -126,6 +121,34 @@ describe("Abracadabra Deposit/Withdraw Agent Tests", () => {
         expect(findings).toStrictEqual([
             createAddCollateralFinding(fromAddress, toAddress, share, String(cauldronNameFTM)), createAddCollateralFinding(fromAddress, toAddress, share, String(cauldronNameWBTC))]);
         })
+
+      it("returns correct findings for cauldrons emitting remove events", async () => {
+
+          const share = new BigNumber(1)
+
+          const txEvent1: TransactionEvent = new TestTransactionEvent().addEventLog(
+              simplifiedAddSignature,
+              "0x05500e2Ee779329698DF35760bEdcAAC046e7C27",
+              encodeParameters(["uint256"], [1]),
+              encodeParameters(["address"], [fromAddress]),
+              encodeParameters(["address"], [toAddress]),
+          )
+          let findings: Finding[] = await handleTransaction(txEvent1);
+
+          const txEvent2: TransactionEvent = new TestTransactionEvent().addEventLog(
+              simplifiedAddSignature,
+              "0x5ec47EE69BEde0b6C2A2fC0D9d094dF16C192498",
+              encodeParameters(["uint256"], [1]),
+              encodeParameters(["address"], [fromAddress]),
+              encodeParameters(["address"], [toAddress]),
+          )
+          findings = findings.concat(await handleTransaction(txEvent2))
+
+          let cauldronNameFTM = CAULDRON_ADDRESS_MAP.get("0x05500e2Ee779329698DF35760bEdcAAC046e7C27");
+          let cauldronNameWBTC = CAULDRON_ADDRESS_MAP.get("0x5ec47EE69BEde0b6C2A2fC0D9d094dF16C192498")
+          expect(findings).toStrictEqual([
+              createAddCollateralFinding(fromAddress, toAddress, share, String(cauldronNameFTM)), createAddCollateralFinding(fromAddress, toAddress, share, String(cauldronNameWBTC))]);
+      })
 
   })
 })

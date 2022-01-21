@@ -1,20 +1,13 @@
 import BigNumber from "bignumber.js";
 import {
-    ethers,
     Finding,
     FindingSeverity,
     FindingType,
-    getEthersProvider,
     HandleTransaction,
     TransactionEvent
 } from "forta-agent";
 
 import {LOGADDCOLLATERAL_EVENT, ETH_DECIMALS, CAULDRON_ADDRESS_MAP} from "./constants";
-
-// Define how large the collateral added should be to trigger an event
-const LARGE_COLLATERAL_AMT = 1;
-// We will need this later to check BentoBox balance
-const ethersProvider = getEthersProvider()
 
 function providerEventTransaction(
     cauldronMap: Map<string,string>
@@ -22,19 +15,19 @@ function providerEventTransaction(
     return async function handleTransaction(txEvent: TransactionEvent) {
         const findings: Finding[] = [];
 
-        for (let entry of Array.from(CAULDRON_ADDRESS_MAP.entries())) {
+        for (let entry of Array.from(cauldronMap.entries())) {
             let cauldronAddress = entry[0];
             let cauldronName = entry[1];
-            const largeCollateralAdd = txEvent.filterLog(
+            const collateralAdd = txEvent.filterLog(
                 LOGADDCOLLATERAL_EVENT,
                 cauldronAddress,
             );
 
-            if (!largeCollateralAdd.length) continue
+            if (!collateralAdd.length) continue
 
-            largeCollateralAdd.forEach((largeCollateralDeposit) => {
+            collateralAdd.forEach((collateralAdd) => {
                 const sharesTransferred = new BigNumber(
-                    largeCollateralDeposit.args.share.toString()
+                    collateralAdd.args.share.toString()
                 ).dividedBy(10 ** ETH_DECIMALS);
 
                 const formattedAmount = sharesTransferred.toFixed(2);
@@ -46,9 +39,9 @@ function providerEventTransaction(
                         severity: FindingSeverity.Info,
                         type: FindingType.Info,
                         metadata: {
-                            from: largeCollateralDeposit.args.from.toString(),
-                            to: largeCollateralDeposit.args.to.toString(),
-                            share: largeCollateralDeposit.args.share.toString(),
+                            from: collateralAdd.args.from.toString(),
+                            to: collateralAdd.args.to.toString(),
+                            share: collateralAdd.args.share.toString(),
                         },
                     })
                 );

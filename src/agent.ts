@@ -1,14 +1,16 @@
 import {HandleTransaction, TransactionEvent} from 'forta-agent'
 import addCollateralEvents from './add_collateral_event'
-
+import removeCollateralEvents from './remove_collateral_event'
+import { CAULDRON_ADDRESS_MAP } from './constants'
 
 let findingsCount = 0
 
-function provideHandleTransaction(): HandleTransaction {
+export function provideHandleTransaction(): HandleTransaction {
 
   return async function handleTransaction(txEvent: TransactionEvent) {
-    const findings = await addCollateralEvents.handleTransaction(txEvent)
-    return findings
+    const findings1 = await addCollateralEvents.handleTransaction(txEvent)
+    const findings2 = await removeCollateralEvents.handleTransaction(txEvent)
+    return findings1.concat(findings2)
   }
 }
 
