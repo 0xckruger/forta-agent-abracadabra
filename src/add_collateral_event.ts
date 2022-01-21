@@ -8,7 +8,8 @@ import {
     HandleTransaction,
     TransactionEvent
 } from "forta-agent";
-import {YVWETHV2CAULDRON_ADDRESS, LOGADDCOLLATERAL_EVENT, ETH_DECIMALS, CAULDRON_LIST_ADDRESS, ADDRESS_MAP} from "./constants";
+
+import {LOGADDCOLLATERAL_EVENT, ETH_DECIMALS, CAULDRON_ADDRESS_MAP} from "./constants";
 
 // Define how large the collateral added should be to trigger an event
 const LARGE_COLLATERAL_AMT = 1;
@@ -16,16 +17,17 @@ const LARGE_COLLATERAL_AMT = 1;
 const ethersProvider = getEthersProvider()
 
 function providerEventTransaction(
-
+    cauldronMap: Map<string,string>
 ): HandleTransaction {
     return async function handleTransaction(txEvent: TransactionEvent) {
         const findings: Finding[] = [];
 
-        for (const i in CAULDRON_LIST_ADDRESS) {
-            let address = CAULDRON_LIST_ADDRESS[i]
+        for (let entry of Array.from(CAULDRON_ADDRESS_MAP.entries())) {
+            let cauldronAddress = entry[0];
+            let cauldronName = entry[1];
             const largeCollateralAdd = txEvent.filterLog(
                 LOGADDCOLLATERAL_EVENT,
-                address,
+                cauldronAddress,
             );
 
             if (!largeCollateralAdd.length) continue
@@ -38,8 +40,8 @@ function providerEventTransaction(
                 const formattedAmount = sharesTransferred.toFixed(2);
                 findings.push(
                     Finding.fromObject({
-                        name: `LogAddCollateral Event in ${ADDRESS_MAP.get(address)} Cauldron`,
-                        description: `${formattedAmount} shares ${ADDRESS_MAP.get(address)} added`,
+                        name: `LogAddCollateral Event in ${cauldronName} Cauldron`,
+                        description: `${formattedAmount} shares ${cauldronName} added`,
                         alertId: "ABRA-1",
                         severity: FindingSeverity.Info,
                         type: FindingType.Info,
@@ -58,5 +60,5 @@ function providerEventTransaction(
 
 export default {
     providerEventTransaction,
-    handleTransaction: providerEventTransaction(),
+    handleTransaction: providerEventTransaction(CAULDRON_ADDRESS_MAP),
 }
