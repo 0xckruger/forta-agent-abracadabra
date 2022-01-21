@@ -39,8 +39,6 @@ CAULDRON_ADDRESS_MAP.set("0x257101F20cB7243E2c7129773eD5dBBcef8B34E0", "cvx3pool
 CAULDRON_ADDRESS_MAP.set("0x390Db10e65b5ab920C19149C919D970ad9d18A41","WETH");
 CAULDRON_ADDRESS_MAP.set("0x5ec47EE69BEde0b6C2A2fC0D9d094dF16C192498","WBTC");
 
-
-
-export const YVWETHV2CAULDRON_ADDRESS = "0x920D9BD936Da4eAFb5E25c6bDC9f6CB528953F9f";
 export const LOGADDCOLLATERAL_EVENT = "event LogAddCollateral(address indexed from, address indexed to, uint256 share)";
+export const LOGREMOVECOLLATERAL_EVENT = "event LogRemoveCollateral(address indexed from, address indexed to, uint256 share)";
 export const ETH_DECIMALS = 18;
