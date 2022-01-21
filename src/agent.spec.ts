@@ -171,6 +171,59 @@ describe("Abracadabra Deposit/Withdraw Agent Tests", () => {
               createAddCollateralFinding(fromAddress, toAddress, share1, String(cauldronName)), createRemoveCollateralFinding(fromAddress, toAddress, share2, String(cauldronName))]);
       })
 
+      it("returns multiple findings if many event emissions occurred with different cauldrons and to/from addresses", async () => {
+          const share1 = new BigNumber(1)
+          const share2 = new BigNumber(2)
+          const share3 = new BigNumber(3)
+          const share4 = new BigNumber(4)
+          const toAddress2 = "0x7Aa2Ac871bE2C6b2259E80b30877F50b1cB61088";
+          const fromAddress2 = "0x4e2c99aaC9A926E156521e9b538A5EfcDCb02FaF";
+          const toAddress3 = "0xddfAbCdc4D8FfC6d5beaf154f18B778f892A0740";
+          const fromAddress3 = "0x8b1eB88cE6579499D8ce024864164D160FcB7268";
+          const toAddress4 = "0x0392b64B8BfDA184F0A72cE37D73dC7dF978C4f7";
+          const fromAddress4 = "0x641aF8b73E24F0B33D9De78a12B19A3e192aFD16";
+          const ftmCauldronAddress = "0x05500e2Ee779329698DF35760bEdcAAC046e7C27";
+          const btcCauldronAddress = "0x5ec47EE69BEde0b6C2A2fC0D9d094dF16C192498";
+          const shibCauldronAddress = "0x252dCf1B621Cc53bc22C256255d2bE5C8c32EaE4";
+
+          const txEvent1: TransactionEvent = new TestTransactionEvent().addEventLog(
+              simplifiedAddSignature,
+              defaultCauldron,
+              encodeParameters(["uint256"], [1]),
+              encodeParameters(["address"], [fromAddress]),
+              encodeParameters(["address"], [toAddress]),
+          ).addEventLog(
+              simplifiedRemoveSignature,
+              ftmCauldronAddress,
+              encodeParameters(["uint256"], [2]),
+              encodeParameters(["address"], [fromAddress2]),
+              encodeParameters(["address"], [toAddress2]),
+          ).addEventLog(
+              simplifiedAddSignature,
+              btcCauldronAddress,
+              encodeParameters(["uint256"], [3]),
+              encodeParameters(["address"], [fromAddress3]),
+              encodeParameters(["address"], [toAddress3]),
+          ).addEventLog(
+              simplifiedRemoveSignature,
+              shibCauldronAddress,
+              encodeParameters(["uint256"], [4]),
+              encodeParameters(["address"], [fromAddress4]),
+              encodeParameters(["address"], [toAddress4]),
+          )
+
+          let findings: Finding[] = await handleTransaction(txEvent1);
+          let cauldronName = cauldronMap.get(defaultCauldron);
+          let ftmCauldronName = cauldronMap.get(ftmCauldronAddress)
+          let btcCauldronName = cauldronMap.get(btcCauldronAddress)
+          let shibCauldronName = cauldronMap.get(shibCauldronAddress)
+          expect(findings).toStrictEqual([
+              createAddCollateralFinding(fromAddress, toAddress, share1, String(cauldronName)),
+              createRemoveCollateralFinding(fromAddress2, toAddress2, share2, String(ftmCauldronName)),
+              createAddCollateralFinding(fromAddress3, toAddress3, share3, String(btcCauldronName)),
+              createRemoveCollateralFinding(fromAddress4, toAddress4, share4, String(shibCauldronName))
+          ]);
+      })
 
 
     it("returns a finding for every known cauldron address given an emission", async() => {
@@ -209,9 +262,12 @@ describe("Abracadabra Deposit/Withdraw Agent Tests", () => {
     })
 
     it("returns correct findings for cauldrons with different addresses and correct event emissions", async () => {
+        const ftmCauldronAddress = "0x05500e2Ee779329698DF35760bEdcAAC046e7C27";
+        const btcCauldronAddress = "0x5ec47EE69BEde0b6C2A2fC0D9d094dF16C192498";
+
         const txEvent1: TransactionEvent = new TestTransactionEvent().addEventLog(
             simplifiedAddSignature,
-            "0x05500e2Ee779329698DF35760bEdcAAC046e7C27",
+            "ftmCauldronAddress",
             encodeParameters(["uint256"], [1]),
             encodeParameters(["address"], [fromAddress]),
             encodeParameters(["address"], [toAddress]),
@@ -220,15 +276,15 @@ describe("Abracadabra Deposit/Withdraw Agent Tests", () => {
 
         const txEvent2: TransactionEvent = new TestTransactionEvent().addEventLog(
             simplifiedAddSignature,
-            "0x5ec47EE69BEde0b6C2A2fC0D9d094dF16C192498",
+            "btcCauldronAddress",
             encodeParameters(["uint256"], [1]),
             encodeParameters(["address"], [fromAddress]),
             encodeParameters(["address"], [toAddress]),
         )
         findings = findings.concat(await handleTransaction(txEvent2))
 
-        let cauldronNameFTM = cauldronMap.get("0x05500e2Ee779329698DF35760bEdcAAC046e7C27");
-        let cauldronNameWBTC = cauldronMap.get("0x5ec47EE69BEde0b6C2A2fC0D9d094dF16C192498")
+        let cauldronNameFTM = cauldronMap.get(ftmCauldronAddress);
+        let cauldronNameWBTC = cauldronMap.get(btcCauldronAddress)
         expect(findings[0]).toStrictEqual(
             createAddCollateralFinding(fromAddress, toAddress, defaultShare, String(cauldronNameFTM))
         )
