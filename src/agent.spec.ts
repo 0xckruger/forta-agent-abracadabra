@@ -217,12 +217,12 @@ describe("Abracadabra Deposit/Withdraw Agent Tests", () => {
           let ftmCauldronName = cauldronMap.get(ftmCauldronAddress)
           let btcCauldronName = cauldronMap.get(btcCauldronAddress)
           let shibCauldronName = cauldronMap.get(shibCauldronAddress)
-          expect(findings).toStrictEqual([
+          expect(findings.sort()).toStrictEqual([
               createAddCollateralFinding(fromAddress, toAddress, share1, String(cauldronName)),
               createRemoveCollateralFinding(fromAddress2, toAddress2, share2, String(ftmCauldronName)),
               createAddCollateralFinding(fromAddress3, toAddress3, share3, String(btcCauldronName)),
               createRemoveCollateralFinding(fromAddress4, toAddress4, share4, String(shibCauldronName))
-          ]);
+          ].sort());
       })
 
 
@@ -275,9 +275,9 @@ describe("Abracadabra Deposit/Withdraw Agent Tests", () => {
         let findings: Finding[] = await handleTransaction(txEvent1);
 
         let cauldronNameFTM = cauldronMap.get(ftmCauldronAddress);
-        expect(findings).toStrictEqual(
+        expect(findings).toStrictEqual([
             createAddCollateralFinding(fromAddress, toAddress, defaultShare, String(cauldronNameFTM))
-        )
+        ])
 
         const txEvent2: TransactionEvent = new TestTransactionEvent().addEventLog(
             simplifiedAddSignature,
@@ -289,8 +289,9 @@ describe("Abracadabra Deposit/Withdraw Agent Tests", () => {
         let findings2: Finding[] = await handleTransaction(txEvent2);
 
         let cauldronNameWBTC = cauldronMap.get(btcCauldronAddress)
-        expect(findings2).toStrictEqual(
-            createAddCollateralFinding(fromAddress, toAddress, defaultShare, String(cauldronNameWBTC)))
+        expect(findings2).toStrictEqual([
+            createAddCollateralFinding(fromAddress, toAddress, defaultShare, String(cauldronNameWBTC))
+        ])
         })
   })
 })
