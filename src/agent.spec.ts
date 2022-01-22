@@ -1,4 +1,11 @@
-import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent } from "forta-agent";
+import {
+  FindingType,
+  FindingSeverity,
+  Finding,
+  HandleTransaction,
+  TransactionEvent,
+  getEthersProvider
+} from "forta-agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/tests.utils";
 import { encodeParameters } from "forta-agent-tools";
 import { provideHandleTransaction } from "./agent";
@@ -47,7 +54,7 @@ describe("Abracadabra Deposit/Withdraw Agent Tests", () => {
   // Change to any test bank of address:string map
   const cauldronMap: Map<string, string> = CAULDRON_ADDRESS_MAP;
   beforeAll(() => {
-    handleTransaction = provideHandleTransaction(cauldronMap);
+    handleTransaction = provideHandleTransaction(getEthersProvider(), cauldronMap);
   });
 
   describe("handleTransaction", () => {

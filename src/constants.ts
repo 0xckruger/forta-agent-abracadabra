@@ -18,6 +18,9 @@ CAULDRON_ADDRESS_MAP.set("0x257101F20cB7243E2c7129773eD5dBBcef8B34E0", "cvx3pool
 CAULDRON_ADDRESS_MAP.set("0x390Db10e65b5ab920C19149C919D970ad9d18A41", "WETH");
 CAULDRON_ADDRESS_MAP.set("0x5ec47EE69BEde0b6C2A2fC0D9d094dF16C192498", "WBTC");
 
+export const BENTOBOX_V1_ADDRESS = "0xF5BCE5077908a1b7370B9ae04AdC565EBd643966";
+export const DEGENBOX_ADDRESS = "0xd96f48665a1410C0cd669A88898ecA36B9Fc2cce";
+
 export const LOGADDCOLLATERAL_EVENT = "event LogAddCollateral(address indexed from, address indexed to, uint256 share)";
 export const LOGREMOVECOLLATERAL_EVENT =
   "event LogRemoveCollateral(address indexed from, address indexed to, uint256 share)";
